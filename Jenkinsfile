@@ -26,8 +26,7 @@ pipeline {
                 echo 'Сборка приложения...'
                 script {
                     if (isUnix()) {
-                        sh 'chmod +x mvnw'
-                        sh './mvnw clean package -DskipTests'
+                        sh 'chmod +x mvnw && ./mvnw clean package -DskipTests'
                     } else {
                         bat 'mvnw.cmd clean package -DskipTests'
                     }
@@ -40,8 +39,7 @@ pipeline {
                 echo 'Запуск тестов...'
                 script {
                     if (isUnix()) {
-                        sh 'chmod +x mvnw'
-                        sh './mvnw test'
+                        sh 'chmod +x mvnw && ./mvnw test'
                     } else {
                         bat 'mvnw.cmd test'
                     }
