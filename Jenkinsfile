@@ -24,14 +24,26 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Сборка приложения...'
-                bat 'mvnw.cmd clean package -DskipTests'
+                script {
+                    if (isUnix()) {
+                        sh './mvnw clean package -DskipTests'
+                    } else {
+                        bat 'mvnw.cmd clean package -DskipTests'
+                    }
+                }
             }
         }
 
         stage('Test') {
             steps {
                 echo 'Запуск тестов...'
-                bat 'mvnw.cmd test'
+                script {
+                    if (isUnix()) {
+                        sh './mvnw test'
+                    } else {
+                        bat 'mvnw.cmd test'
+                    }
+                }
             }
             post {
                 always {
@@ -43,15 +55,28 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo 'Сборка Docker образа...'
-                bat "docker build -t ${APP_NAME}:${BUILD_NUMBER} -t ${APP_NAME}:latest ."
+                script {
+                    if (isUnix()) {
+                        sh "docker build -t ${APP_NAME}:${BUILD_NUMBER} -t ${APP_NAME}:latest ."
+                    } else {
+                        bat "docker build -t ${APP_NAME}:${BUILD_NUMBER} -t ${APP_NAME}:latest ."
+                    }
+                }
             }
         }
 
         stage('Deploy') {
             steps {
                 echo 'Развертывание приложения...'
-                bat "docker-compose down --remove-orphans || echo 'No containers to stop'"
-                bat "docker-compose up -d --build"
+                script {
+                    if (isUnix()) {
+                        sh "docker compose down --remove-orphans || echo 'No containers to stop'"
+                        sh "docker compose up -d --build ${APP_NAME}"
+                    } else {
+                        bat "docker-compose down --remove-orphans || echo No containers to stop"
+                        bat "docker-compose up -d --build ${APP_NAME}"
+                    }
+                }
             }
         }
 
@@ -65,7 +90,11 @@ pipeline {
 
                     while (retryCount < maxRetries && !healthy) {
                         try {
-                            bat 'curl -f http://localhost:8080/actuator/health'
+                            if (isUnix()) {
+                                sh 'curl -f http://localhost:8080/actuator/health'
+                            } else {
+                                bat 'curl -f http://localhost:8080/actuator/health'
+                            }
                             healthy = true
                             echo 'Приложение успешно запущено!'
                         } catch (Exception e) {
@@ -95,4 +124,3 @@ pipeline {
         }
     }
 }
-
