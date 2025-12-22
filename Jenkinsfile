@@ -57,7 +57,7 @@ pipeline {
                 echo 'Сборка Docker образа...'
                 script {
                     if (isUnix()) {
-                        sh "docker build -t ${APP_NAME}:${BUILD_NUMBER} -t ${APP_NAME}:latest ."
+                        sh "sudo docker build -t ${APP_NAME}:${BUILD_NUMBER} -t ${APP_NAME}:latest ."
                     } else {
                         bat "docker build -t ${APP_NAME}:${BUILD_NUMBER} -t ${APP_NAME}:latest ."
                     }
@@ -70,9 +70,9 @@ pipeline {
                 echo 'Развертывание приложения...'
                 script {
                     if (isUnix()) {
-                        sh "docker rm -f ${APP_NAME} || echo 'Container not found'"
-                        sh "docker compose down --remove-orphans || echo 'No containers to stop'"
-                        sh "docker compose up -d --build ${APP_NAME}"
+                        sh "sudo docker rm -f ${APP_NAME} || echo 'Container not found'"
+                        sh "sudo docker compose down --remove-orphans || echo 'No containers to stop'"
+                        sh "sudo docker compose up -d --build ${APP_NAME}"
                     } else {
                         bat "docker rm -f ${APP_NAME} || echo Container not found"
                         bat "docker-compose down --remove-orphans || echo No containers to stop"
