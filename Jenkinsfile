@@ -82,48 +82,6 @@ pipeline {
             }
         }
 
-//         stage('Health Check') {
-//             steps {
-//                 echo 'Проверка работоспособности приложения...'
-//                 script {
-//                     def maxRetries = 10
-//                     def retryCount = 0
-//                     def healthy = false
-//
-//                     def hostIP = ''
-//                     if (isUnix()) {
-//                         hostIP = sh(script: "ip route | grep default | awk '{print \$3}'", returnStdout: true).trim()
-//                         echo "Host IP: ${hostIP}"
-//                     }
-//
-//                     if (hostIP == '') {
-//                         hostIP = 'demo-admink'
-//                     }
-//
-//                     while (retryCount < maxRetries && !healthy) {
-//                         try {
-//                             if (isUnix()) {
-//                                 sh "curl -f http://${hostIP}:8080/actuator/health"
-//                             } else {
-//                                 bat 'curl -f http://host.docker.internal:8080/actuator/health'
-//                             }
-//                             healthy = true
-//                             echo 'Приложение успешно запущено!'
-//                         } catch (Exception e) {
-//                             retryCount++
-//                             echo "Попытка ${retryCount}/${maxRetries}. Ожидание запуска приложения..."
-//                             sleep(time: 10, unit: 'SECONDS')
-//                         }
-//                     }
-//
-//                     if (!healthy) {
-//                         error 'Приложение не запустилось в отведенное время!'
-//                     }
-//                 }
-//             }
-//         }
-//     }
-
     post {
         success {
             echo 'Pipeline выполнен успешно!'
