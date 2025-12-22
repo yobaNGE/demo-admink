@@ -51,7 +51,6 @@ jobs:
               git {
                 remote {
                   url('${GIT_REPO_URL}')
-                  credentials('git-credentials')
                 }
                 branches('*/main')
               }
