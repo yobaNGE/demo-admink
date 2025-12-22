@@ -90,12 +90,20 @@ pipeline {
                     def retryCount = 0
                     def healthy = false
 
+                    // Получаем IP gateway (IP хоста в Docker сети)
+                    def hostIP = ''
+                    if (isUnix()) {
+                        hostIP = sh(script: "ip route | grep default | awk '{print \$3}'", returnStdout: true).trim()
+                        echo "Host IP: ${hostIP}"
+                    }
+
                     while (retryCount < maxRetries && !healthy) {
                         try {
                             if (isUnix()) {
-                                sh 'curl -f http://localhost:8080/actuator/health'
+                                // Используем IP хоста вместо имени контейнера
+                                sh "curl -f http://${hostIP}:8080/actuator/health"
                             } else {
-                                bat 'curl -f http://localhost:8080/actuator/health'
+                                bat 'curl -f http://host.docker.internal:8080/actuator/health'
                             }
                             healthy = true
                             echo 'Приложение успешно запущено!'
