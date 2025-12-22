@@ -71,12 +71,12 @@ pipeline {
                 echo 'Развертывание приложения...'
                 script {
                     if (isUnix()) {
-                        sh "docker rm -f ${APP_NAME} || echo 'Container not found'"
-                        sh "docker compose -p ${COMPOSE_PROJECT_NAME} down --remove-orphans || echo 'No containers to stop'"
+                        sh "docker compose -p ${COMPOSE_PROJECT_NAME} stop ${APP_NAME} || echo 'Container not running'"
+                        sh "docker compose -p ${COMPOSE_PROJECT_NAME} rm -f ${APP_NAME} || echo 'Container not found'"
                         sh "docker compose -p ${COMPOSE_PROJECT_NAME} up -d --build ${APP_NAME}"
                     } else {
-                        bat "docker rm -f ${APP_NAME} || echo Container not found"
-                        bat "docker-compose -p ${COMPOSE_PROJECT_NAME} down --remove-orphans || echo No containers to stop"
+                        bat "docker-compose -p ${COMPOSE_PROJECT_NAME} stop ${APP_NAME} || echo Container not running"
+                        bat "docker-compose -p ${COMPOSE_PROJECT_NAME} rm -f ${APP_NAME} || echo Container not found"
                         bat "docker-compose -p ${COMPOSE_PROJECT_NAME} up -d --build ${APP_NAME}"
                     }
                 }
