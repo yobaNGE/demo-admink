@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKER_COMPOSE_FILE = 'docker-compose.yml'
         APP_NAME = 'demo-admink'
+        COMPOSE_PROJECT_NAME = 'demo-admink'
     }
 
     triggers {
@@ -57,7 +58,7 @@ pipeline {
                 echo 'Сборка Docker образа...'
                 script {
                     if (isUnix()) {
-                        sh "sudo docker build -t ${APP_NAME}:${BUILD_NUMBER} -t ${APP_NAME}:latest ."
+                        sh "docker build -t ${APP_NAME}:${BUILD_NUMBER} -t ${APP_NAME}:latest ."
                     } else {
                         bat "docker build -t ${APP_NAME}:${BUILD_NUMBER} -t ${APP_NAME}:latest ."
                     }
@@ -70,13 +71,13 @@ pipeline {
                 echo 'Развертывание приложения...'
                 script {
                     if (isUnix()) {
-                        sh "sudo docker rm -f ${APP_NAME} || echo 'Container not found'"
-                        sh "sudo docker compose down --remove-orphans || echo 'No containers to stop'"
-                        sh "sudo docker compose up -d --build ${APP_NAME}"
+                        sh "docker rm -f ${APP_NAME} || echo 'Container not found'"
+                        sh "docker compose -p ${COMPOSE_PROJECT_NAME} down --remove-orphans || echo 'No containers to stop'"
+                        sh "docker compose -p ${COMPOSE_PROJECT_NAME} up -d --build ${APP_NAME}"
                     } else {
                         bat "docker rm -f ${APP_NAME} || echo Container not found"
-                        bat "docker-compose down --remove-orphans || echo No containers to stop"
-                        bat "docker-compose up -d --build ${APP_NAME}"
+                        bat "docker-compose -p ${COMPOSE_PROJECT_NAME} down --remove-orphans || echo No containers to stop"
+                        bat "docker-compose -p ${COMPOSE_PROJECT_NAME} up -d --build ${APP_NAME}"
                     }
                 }
             }
