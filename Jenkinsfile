@@ -70,9 +70,11 @@ pipeline {
                 echo 'Развертывание приложения...'
                 script {
                     if (isUnix()) {
+                        sh "docker rm -f ${APP_NAME} || echo 'Container not found'"
                         sh "docker compose down --remove-orphans || echo 'No containers to stop'"
                         sh "docker compose up -d --build ${APP_NAME}"
                     } else {
+                        bat "docker rm -f ${APP_NAME} || echo Container not found"
                         bat "docker-compose down --remove-orphans || echo No containers to stop"
                         bat "docker-compose up -d --build ${APP_NAME}"
                     }
