@@ -2,7 +2,9 @@ package com.pipemasters.demoadmink.service;
 
 import com.pipemasters.demoadmink.dto.ProductDto;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -22,13 +24,37 @@ public class ProductService {
     private final AtomicLong idGenerator = new AtomicLong(1);
     private final Counter productCreatedCounter;
     private final Counter productDeletedCounter;
+    private final Counter productUpdatedCounter;
+    private final Counter productViewsCounter;
+    private final Timer productOperationTimer;
 
     public ProductService(MeterRegistry meterRegistry) {
-        this.productCreatedCounter = Counter.builder("products.created")
-                .description("Количество созданных продуктов")
+        this.productCreatedCounter = Counter.builder("products_created_total")
+                .description("Total number of products created")
                 .register(meterRegistry);
-        this.productDeletedCounter = Counter.builder("products.deleted")
-                .description("Количество удаленных продуктов")
+        this.productDeletedCounter = Counter.builder("products_deleted_total")
+                .description("Total number of products deleted")
+                .register(meterRegistry);
+        this.productUpdatedCounter = Counter.builder("products_updated_total")
+                .description("Total number of products updated")
+                .register(meterRegistry);
+        this.productViewsCounter = Counter.builder("products_views_total")
+                .description("Total number of product views")
+                .register(meterRegistry);
+        this.productOperationTimer = Timer.builder("products_operation_duration")
+                .description("Duration of product operations")
+                .register(meterRegistry);
+
+        Gauge.builder("products_total", products, Map::size)
+                .description("Current total number of products")
+                .register(meterRegistry);
+
+        Gauge.builder("products_total_quantity", this, ProductService::getTotalQuantity)
+                .description("Total quantity of all products in stock")
+                .register(meterRegistry);
+
+        Gauge.builder("products_total_value", this, ProductService::getTotalValue)
+                .description("Total value of all products in stock")
                 .register(meterRegistry);
 
         // Инициализация тестовых данных
@@ -47,13 +73,22 @@ public class ProductService {
     }
 
     public List<ProductDto> getAllProducts() {
-        log.info("Получение всех продуктов");
-        return new ArrayList<>(products.values());
+        return productOperationTimer.record(() -> {
+            log.info("Получение всех продуктов");
+            productViewsCounter.increment(products.size());
+            return new ArrayList<>(products.values());
+        });
     }
 
     public Optional<ProductDto> getProductById(Long id) {
-        log.info("Получение продукта с id: {}", id);
-        return Optional.ofNullable(products.get(id));
+        return productOperationTimer.record(() -> {
+            log.info("Получение продукта с id: {}", id);
+            Optional<ProductDto> product = Optional.ofNullable(products.get(id));
+            if (product.isPresent()) {
+                productViewsCounter.increment();
+            }
+            return product;
+        });
     }
 
     public ProductDto createProduct(ProductDto productDto) {
@@ -66,22 +101,40 @@ public class ProductService {
     }
 
     public Optional<ProductDto> updateProduct(Long id, ProductDto productDto) {
-        log.info("Обновление продукта с id: {}", id);
-        if (products.containsKey(id)) {
-            productDto.setId(id);
-            products.put(id, productDto);
-            return Optional.of(productDto);
-        }
-        return Optional.empty();
+        return productOperationTimer.record(() -> {
+            log.info("Обновление продукта с id: {}", id);
+            if (products.containsKey(id)) {
+                productDto.setId(id);
+                products.put(id, productDto);
+                productUpdatedCounter.increment();
+                return Optional.of(productDto);
+            }
+            return Optional.empty();
+        });
     }
 
     public boolean deleteProduct(Long id) {
-        log.info("Удаление продукта с id: {}", id);
-        ProductDto removed = products.remove(id);
-        if (removed != null) {
-            productDeletedCounter.increment();
-            return true;
-        }
-        return false;
+        return productOperationTimer.record(() -> {
+            log.info("Удаление продукта с id: {}", id);
+            ProductDto removed = products.remove(id);
+            if (removed != null) {
+                productDeletedCounter.increment();
+                return true;
+            }
+            return false;
+        });
+    }
+
+    private double getTotalQuantity() {
+        return products.values().stream()
+                .mapToInt(ProductDto::getQuantity)
+                .sum();
+    }
+
+    private double getTotalValue() {
+        return products.values().stream()
+                .map(p -> p.getPrice().multiply(BigDecimal.valueOf(p.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .doubleValue();
     }
 }

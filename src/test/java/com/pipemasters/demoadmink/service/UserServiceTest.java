@@ -97,16 +97,16 @@ class UserServiceTest {
     @Test
     void createUser_shouldIncrementCounter() {
         UserDto newUser = UserDto.builder().name("Test").email("test@test.com").age(20).build();
-        double initialCount = meterRegistry.counter("users.created").count();
+        double initialCount = meterRegistry.counter("users_created_total").count();
         userService.createUser(newUser);
-        assertEquals(initialCount + 1, meterRegistry.counter("users.created").count());
+        assertEquals(initialCount + 1, meterRegistry.counter("users_created_total").count());
     }
 
     @Test
     void deleteUser_shouldIncrementCounter_whenSuccess() {
         Long existingId = 1L;
-        double initialCount = meterRegistry.counter("users.deleted").count();
+        double initialCount = meterRegistry.counter("users_deleted_total").count();
         userService.deleteUser(existingId);
-        assertEquals(initialCount + 1, meterRegistry.counter("users.deleted").count());
+        assertEquals(initialCount + 1, meterRegistry.counter("users_deleted_total").count());
     }
 }

@@ -144,25 +144,25 @@ class ProductServiceTest {
                 .price(new BigDecimal("99.99"))
                 .quantity(5)
                 .build();
-        double initialCount = meterRegistry.counter("products.created").count();
+        double initialCount = meterRegistry.counter("products_created_total").count();
 
         // When
         productService.createProduct(newProduct);
 
         // Then
-        assertEquals(initialCount + 1, meterRegistry.counter("products.created").count());
+        assertEquals(initialCount + 1, meterRegistry.counter("products_created_total").count());
     }
 
     @Test
     void deleteProduct_shouldIncrementCounter_whenSuccess() {
         // Given
         Long existingId = 1L;
-        double initialCount = meterRegistry.counter("products.deleted").count();
+        double initialCount = meterRegistry.counter("products_deleted_total").count();
 
         // When
         productService.deleteProduct(existingId);
 
         // Then
-        assertEquals(initialCount + 1, meterRegistry.counter("products.deleted").count());
+        assertEquals(initialCount + 1, meterRegistry.counter("products_deleted_total").count());
     }
 }
