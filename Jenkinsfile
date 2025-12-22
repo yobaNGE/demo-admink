@@ -7,8 +7,10 @@ pipeline {
     }
 
     triggers {
-        // Триггер для GitHub webhook
-        githubPush()
+
+        pollSCM('H/1 * * * *')
+
+        // githubPush()
     }
 
     stages {

@@ -61,7 +61,8 @@ jobs:
         }
         
         triggers {
-          githubPush()
+          // Poll SCM каждые 2 минуты - для серверов без публичного доступа
+          scm('H/2 * * * *')
         }
         
         properties {
